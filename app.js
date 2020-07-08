@@ -1,6 +1,5 @@
 var https = require('https');
 var fs = require("fs");
-var cheerio = require("cheerio");
 Date.prototype.Format = function (formatStr) {
     var str = formatStr;
     str = str.replace(/yyyy|YYYY/, this.getFullYear());
@@ -12,8 +11,8 @@ Date.prototype.Format = function (formatStr) {
     return str;
 };
 var fileName = new Date().Format('YYYY-MM-DD') + '.csv';
-var cookie = 'sp_search_last_right_status=hide; cid=1280025a9fc1ec2c2c81ee8f94fadad81593997547; WafStatus=0; guideState=1; user=MDpteF81MzAyNDQ2NzU6Ok5vbmU6NTAwOjo6MDo6OjUzMDI0NDY3NToxNTk0MDAwNTc0Ojo6MDoyNjc4NDAwOjA6MTEyYTY0MmMyMDI4ZjFmZTBmNDVkZWY0Y2NmMzM1ODI0OmRlZmF1bHRfNDow; userid=530244675; u_name=mx_530244675; escapename=mx_530244675; ticket=d6613af894b7139df65429f6005ee023; ComputerID=1280025a9fc1ec2c2c81ee8f94fadad81593997547; PHPSESSID=1d9fe509022d180d10b3f918aeade4b4; vvvv=1; v=AkKoinNhqRl54LVF6mrfqujYk0OnE0Yt-Bc6UYxbbrVg3-z1dKOWPcinimBf';
-var url = 'https://www.iwencai.com/stockpick/load-data?w=连续5年ROE大于15%，连续5年净利润现金含量大于80%，连续5年毛利率大于30%，上市大于3年，连续5年TTM市盈率，连续5年TTM股息率';
+var cookie = 'PHPSESSID=d6364216c5f24cb373d0a696f388f3a7; cid=d6364216c5f24cb373d0a696f388f3a71594205748; ComputerID=d6364216c5f24cb373d0a696f388f3a71594205748; WafStatus=0; v=AjjS5N1zk54Pl_8ahPN17K7qCe3JoZuK_jdwyXKphXkm_tbbGrFsu04VQAjB';
+var url = 'https://www.iwencai.com/stockpick/load-data?&p=1&perpage=3&w=连续5年ROE大于15%，连续5年净利润现金含量大于80%，连续5年毛利率大于30%，上市大于3年，连续5年TTM市盈率，连续5年TTM股息率';
 var req = https.request(url, function (res) {
     var html = "";
     res.on("data", function (data) {
@@ -37,27 +36,22 @@ var req = https.request(url, function (res) {
             }
         }
         fs.writeFileSync(fileName, arr.toString(), 'utf-8');
-        var $ = cheerio.load(html.data.tableTempl);
-        $('body').html($('table'));
-        var st = $('.static_tbody_table tr');
-        var bt = $('.scroll_tbody_table tr');
-        for (var i = 0; i < st.length; i++) {
-            var ld = [];
-            var sd = $(st[i]).find('td');
-            var bd = $(bt[i]).find('td');
-            for (var c = 1; c < sd.length; c++) {
-                var s = $(sd[c]).text().replace(new RegExp('\\r|\\n', 'gi'), '');
-                if (s != '') {
-                    ld.push(s);
+        var result = html.data.result.result;
+        for (var i = 0; i < result.length; i++) {
+            var rarr = [];
+            var len = result[i];
+            for (var g = 0; g < len.length; g++) {
+                var kl = len[g];
+                if (typeof kl == 'object') {
+                    for (var k = 0; k < kl.length; k++) {
+                        var dk = kl[k];
+                        rarr.push(dk);
+                    }
+                } else {
+                    rarr.push(kl);
                 }
             }
-            for (var d = 0; d < bd.length; d++) {
-                var ss = ld.push($(bd[d]).text().replace(new RegExp('\\r|\\n', 'gi'), ''));
-                if (ss != '') {
-                    ld.push(ss);
-                }
-            }
-            fs.appendFileSync(fileName, '\n' + ld.toString(), 'utf-8');
+            fs.appendFileSync(fileName, '\n' + rarr.toString(), 'utf-8');
         }
     })
 });
@@ -66,4 +60,4 @@ req.setHeader('Cookie', cookie);
 req.end();
 
 
-
+''
